@@ -11,9 +11,10 @@
 |    | feature/3-category-seed |  |
 |    | feature/4-category-list |  |
 
-Reviewer comment I received: <...>
-How I responded: <...>
+Reviewer comment I received: <good job>
+How I responded: <nice>
 
 ## Pull Requests I reviewed for my partner
 My comment: <...>
 Partner's response: <...>
+**nothing**
