@@ -15,6 +15,6 @@ Reviewer comment I received: **good job**
 How I responded: **nice**
 
 ## Pull Requests I reviewed for my partner
-My comment: <...>
-Partner's response: <...>
-**nothing**
+My comment: **perfect**
+Partner's response: **ok**
+
