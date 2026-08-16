@@ -1,7 +1,7 @@
 # Lab 1 — Peer Review Record  (fill this in)
 
-**Author:** <your name> — <student id> — GitHub: @<username>
-**Peer reviewer:** <partner name> — <student id> — GitHub: @<username>
+**Author:** <your name>Xavier GOBERT — <student id>69540460003 — GitHub: @<username>hoshiiiix
+**Peer reviewer:** <partner name> Baptiste DUBROEUCQ— <student id>69540460002 — GitHub: @<username>bptdbr
 
 ## Pull Requests I authored (reviewed by my partner)
 | PR | Branch | Reviewer verdict |
