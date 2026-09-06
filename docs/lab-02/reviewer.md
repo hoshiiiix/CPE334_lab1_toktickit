@@ -1,9 +1,9 @@
 # Lab 2 — Peer Review Record
 
 ## Reviewer Details
-- Reviewer name: _fill in_
-- Student ID: _fill in_
-- GitHub username: _fill in_
+- Reviewer name: _Xavier GOBERT_
+- Student ID: _69540460003_
+- GitHub username: _hoshiiiix_
 
 ## Pull Requests Reviewed (by me, for my partner)
 | PR Link | Comment I gave | How my partner responded |
