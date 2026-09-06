@@ -1,0 +1,53 @@
+:root {
+  --color-primary: #006B3C;
+  --color-secondary: #0B7A46;
+  --color-pale: #EAF6EF;
+  --color-bg: #F5F7F6;
+  --color-surface: #FFFFFF;
+  --color-text: #1F2A24;
+  --color-error: #B3261E;
+  --color-warning: #B8860B;
+  --color-success: #1E7A46;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.tk-navbar {
+  background-color: var(--color-primary) !important;
+}
+
+.tk-navbar .nav-link {
+  color: white !important;
+}
+
+.tk-navbar .nav-link.active {
+  text-decoration: underline;
+  text-decoration-color: var(--color-pale);
+}
+
+.tk-readonly {
+  background-color: #EEF2EF;
+  cursor: not-allowed;
+}
+
+.tk-badge-low { background-color: #E5E7EB; color: #1F2A24; }
+.tk-badge-medium { background-color: #FDECC8; color: #7A4E00; }
+.tk-badge-high { background-color: #FBD5D5; color: var(--color-error); }
+.tk-badge-new { background-color: var(--color-pale); color: var(--color-secondary); }
+.tk-badge-removed { background-color: #E5E7EB; color: #6B7280; }
+
+.tk-field-error {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.tk-success-panel {
+  background-color: var(--color-pale);
+  border: 1px solid var(--color-secondary);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
