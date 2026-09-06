@@ -119,8 +119,31 @@ disabled) states.
 ## 16. Visual Inspection Checklist
 - [ ] No clipped labels or truncated badges at any breakpoint
 - [ ] No overlapping validation messages
-- [ ] No unintended horizontal scroll on mobile
-- [ ] Editable vs. read-only fields are visually distinguishable at a glance
+- [x] No unintended horizontal scroll on mobile
+- [x] Editable vs. read-only fields are visually distinguishable at a glance
 - [ ] All button styles match the hierarchy table
-- [ ] Screenshots captured at desktop/tablet/mobile for Create Ticket, My Tickets,
+- [x] Screenshots captured at desktop/tablet/mobile for Create Ticket, My Tickets,
       Ticket Detail, saved under `artifacts/lab-02/screenshots/<screen>/`
+<img width="1280" height="480" alt="Capture d’écran 2026-09-07 à 00 26 42" src="https://github.com/user-attachments/assets/de4ab9f1-4135-4b60-ac16-cd53a414959a" />
+<img width="1280" height="480" alt="Capture d’écran 2026-09-07 à 00 26 45" src="https://github.com/user-attachments/assets/3be34873-d889-4697-82cf-5b0b5b82a9d7" />
+<img width="1280" height="480" alt="Capture d’écran 2026-09-07 à 00 26 38" src="https://github.com/user-attachments/assets/02cf6b6a-de0e-49ad-9d8e-28a59224a8c8" />
+
+<img width="768" height="480" alt="Capture d’écran 2026-09-07 à 00 26 25" src="https://github.com/user-attachments/assets/c8f6f572-6f8a-4c09-a923-44bbe736898b" />
+<img width="768" height="480" alt="Capture d’écran 2026-09-07 à 00 26 21" src="https://github.com/user-attachments/assets/3bf14a69-10bc-4fc4-acec-25d5c379a784" />
+<img width="768" height="480" alt="Capture d’écran 2026-09-07 à 00 26 17" src="https://github.com/user-attachments/assets/d7efef2a-6701-4e53-88c7-c209fc7a441c" />
+
+<img width="375" height="480" alt="Capture d’écran 2026-09-07 à 00 25 34" src="https://github.com/user-attachments/assets/20fd51a6-e7eb-4a75-a28b-64025aea97da" />
+<img width="375" height="480" alt="Capture d’écran 2026-09-07 à 00 25 43" src="https://github.com/user-attachments/assets/aa6a3dee-7940-4faf-8267-19f19745433d" />
+<img width="375" height="480" alt="Capture d’écran 2026-09-07 à 00 25 49" src="https://github.com/user-attachments/assets/542cd65c-2458-4307-8cbf-7219d1a77455" />
+
+
+### Notes / Known Issues
+1. **Mobile header nav (Section 10 violation)**: the spec requires the mobile nav
+   to collapse into a hamburger/menu button. Instead, the current implementation
+   just lets "My Tickets", "Create Ticket", requester name, and "Change Requester"
+   wrap and overlap within the fixed-height header bar, causing the label overlap
+   noted above. This is a layout bug, not just a cosmetic nit — it makes "Create
+   Ticket" and the requester name hard to read/tap distinctly on mobile.
+2. **"Change Requester" button style**: rendered as an outlined button on every
+   breakpoint, whereas Section 5 classifies it as a tertiary (text/link) action.
+   Low-severity — doesn't block usability, but is a spec deviation worth flagging.
