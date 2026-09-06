@@ -37,3 +37,42 @@ Run frontend tests: `npm test`
    - Failure (backend/DB down): "System Status: Offline" + error message.
 
 See `docs/lab-01/` for the AI usage log, test plan, and peer review record.
+
+## Lab 2
+
+### Migrations & Seed
+```bash
+cd server
+npm run prisma:migrate
+npm run prisma:seed
+```
+
+### Running the App
+```bash
+# Terminal 1 — backend (port 3000)
+cd server
+npm run dev
+
+# Terminal 2 — frontend (port 5173)
+cd client
+npm run dev
+```
+
+### Running the Tests
+```bash
+# Server unit/API tests
+cd server
+npm test
+
+# Client component tests
+cd client
+npm test
+
+# End-to-end tests (Desktop/Tablet/Mobile, requires backend + frontend running
+# and a freshly seeded database)
+npx playwright test e2e/lab-02
+```
+
+### Documentation
+See [`docs/lab-02/`](docs/lab-02/) for the full specification, UI spec, test plan
+and results, AI usage log, and reviewer notes.
