@@ -5,7 +5,7 @@ import fs from "fs";
 import crypto from "crypto";
 import { getPrisma } from "../prisma.js";
 import { requireDevRequester, RequesterRequest } from "../middleware/requireDevRequester.js";
-import { generateTicketNumber } from "../utils/ticketNumber.js";
+import { withTicketNumberRetry } from "../utils/ticketNumber.js";
 
 export const ticketsRouter = Router();
 
@@ -129,21 +129,21 @@ ticketsRouter.post(
     }
 
     try {
-      const { ticketNumber, ticketYear, yearSequence } = await generateTicketNumber(prisma);
-
-      const ticket = await prisma.ticket.create({
-        data: {
-          ticketNumber,
-          ticketYear,
-          yearSequence,
-          requesterId: req.requesterId!,
-          categoryId: categoryIdNum,
-          relatedSystemId: relatedSystemIdNum,
-          summary: trimmedSummary,
-          description: trimmedDescription,
-          requestedPriority,
-        },
-      });
+      const ticket = await withTicketNumberRetry(prisma, ({ ticketNumber, ticketYear, yearSequence }) =>
+        prisma.ticket.create({
+          data: {
+            ticketNumber,
+            ticketYear,
+            yearSequence,
+            requesterId: req.requesterId!,
+            categoryId: categoryIdNum,
+            relatedSystemId: relatedSystemIdNum,
+            summary: trimmedSummary,
+            description: trimmedDescription,
+            requestedPriority,
+          },
+        })
+      );
 
       // BR-13: ticket is saved even if some attachments fail to persist metadata.
       const failedAttachments: string[] = [];
