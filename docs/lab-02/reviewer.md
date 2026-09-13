@@ -1,9 +1,10 @@
 # Lab 2 — Peer Review Record
 
 ## Reviewer Details
-- Reviewer name: _Xavier GOBERT_
-- Student ID: _69540460003_
-- GitHub username: _hoshiiiix_
+- Reviewer name: _Baptiste DUBROEUCQ_
+- Student ID: _69540460002_
+- GitHub username: _bptdbr_
+
 
 ## Pull Requests Reviewed (by me, for my partner)
 | PR Link | Comment I gave | How my partner responded |
