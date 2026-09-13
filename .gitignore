@@ -1,0 +1,38 @@
+# --- Dependencies ---
+node_modules/
+
+# --- Build output ---
+dist/
+build/
+
+# --- Environment secrets ---
+.env
+.env.local
+*.env.local
+
+# --- Logs ---
+*.log
+npm-debug.log*
+
+# --- OS/editor cruft ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Test coverage ---
+coverage/
+
+# --- Lab 2: uploaded attachment files (never commit real uploads) ---
+server/uploads/
+
+# --- Playwright ---
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# --- Prisma ---
+# (schema.prisma and migrations ARE committed; this ignores generated client
+# artifacts some setups place outside node_modules)
+server/prisma/generated/
