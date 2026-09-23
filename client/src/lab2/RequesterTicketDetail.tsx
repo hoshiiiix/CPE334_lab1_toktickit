@@ -1,27 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchTicket, Ticket } from "./api";
-import { useDevRequester } from "./DevRequesterContext";
+import { fetchTicket, Ticket, ApiError } from "./api";
 import AttachmentSection from "./AttachmentSection";
 
 type LoadState = "loading" | "success" | "error" | "not-found";
 
 export default function RequesterTicketDetail() {
   const { id } = useParams();
-  const { requesterId } = useDevRequester();
   const [state, setState] = useState<LoadState>("loading");
   const [ticket, setTicket] = useState<Ticket | null>(null);
 
   useEffect(() => {
-    if (!requesterId || !id) return;
+    if (!id) return;
     setState("loading");
-    fetchTicket(requesterId, Number(id))
-      .then((t) => {
-        setTicket(t);
-        setState("success");
-      })
-      .catch((err) => setState(err?.status === 404 ? "not-found" : "error"));
-  }, [requesterId, id]);
+    fetchTicket(Number(id))
+      .then((t) => { setTicket(t); setState("success"); })
+      .catch((err) => setState(err instanceof ApiError && err.status === 404 ? "not-found" : "error"));
+  }, [id]);
 
   if (state === "loading") return <p role="status">Loading ticket…</p>;
   if (state === "not-found") return <p>Ticket not found.</p>;
@@ -30,9 +25,7 @@ export default function RequesterTicketDetail() {
 
   return (
     <div style={{ maxWidth: 720 }}>
-      <Link to="/tickets" className="d-inline-block mb-3">
-        ← Back to My Tickets
-      </Link>
+      <Link to="/tickets" className="d-inline-block mb-3">← Back to My Tickets</Link>
       <h1 className="h4 mb-4">Ticket {ticket.ticketNumber}</h1>
 
       <div className="row mb-2">

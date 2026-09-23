@@ -2,45 +2,29 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import RequesterTicketDetail from "../../src/lab2/RequesterTicketDetail";
-import { DevRequesterProvider } from "../../src/lab2/DevRequesterContext";
 import * as api from "../../src/lab2/api";
+import { ApiError } from "../../src/lab2/api";
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  sessionStorage.setItem(
-    "toktickit.devRequesterId",
-    JSON.stringify({ id: 1, name: "Jennifer Anderson" })
-  );
 });
 
 function renderScreen() {
   return render(
     <MemoryRouter initialEntries={["/tickets/1"]}>
-      <DevRequesterProvider>
-        <Routes>
-          <Route path="/tickets/:id" element={<RequesterTicketDetail />} />
-        </Routes>
-      </DevRequesterProvider>
+      <Routes>
+        <Route path="/tickets/:id" element={<RequesterTicketDetail />} />
+      </Routes>
     </MemoryRouter>
   );
 }
 
 const baseTicket = {
-  id: 1,
-  ticketNumber: "TKT-2026-000001",
-  requesterId: 1,
-  categoryId: 1,
-  relatedSystemId: 1,
-  summary: "Laptop battery drains quickly",
-  description: "The battery drains much faster than usual.",
-  requestedPriority: "MEDIUM",
-  itPriority: null,
-  currentStatus: "NEW",
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  attachments: [
-    { id: 1, originalFilename: "photo.jpg", mimeType: "image/jpeg", sizeBytes: 1000, uploadedAt: "", isRemoved: false, removedAt: null, removedReason: null },
-  ],
+  id: 1, ticketNumber: "TKT-2026-000001", requesterId: 1, categoryId: 1, relatedSystemId: 1,
+  summary: "Laptop battery drains quickly", description: "The battery drains much faster than usual.",
+  requestedPriority: "MEDIUM", itPriority: null, currentStatus: "NEW",
+  createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  attachments: [{ id: 1, originalFilename: "photo.jpg", mimeType: "image/jpeg", sizeBytes: 1000, uploadedAt: "", isRemoved: false, removedAt: null, removedReason: null }],
 } as any;
 
 describe("RequesterTicketDetail", () => {
@@ -53,9 +37,7 @@ describe("RequesterTicketDetail", () => {
   });
 
   it("shows not-found when the ticket is not owned by the current requester", async () => {
-    const err: any = new Error("not found");
-    err.status = 404;
-    vi.spyOn(api, "fetchTicket").mockRejectedValue(err);
+    vi.spyOn(api, "fetchTicket").mockRejectedValue(new ApiError(404, "Ticket not found"));
     renderScreen();
     await waitFor(() => expect(screen.getByText(/Ticket not found/i)).toBeInTheDocument());
   });
@@ -66,7 +48,6 @@ describe("RequesterTicketDetail", () => {
     await waitFor(() => expect(screen.getByText("photo.jpg")).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: /Remove photo.jpg/i }));
-    const confirmBtn = screen.getByRole("button", { name: /Confirm Removal/i });
-    expect(confirmBtn).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Confirm Removal/i })).toBeDisabled();
   });
 });
