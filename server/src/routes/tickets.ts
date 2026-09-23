@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { getPrisma } from "../prisma.js";
-import { requireDevRequester, RequesterRequest } from "../middleware/requireDevRequester.js";
+import { requireAuth, requireFullAccess, AuthedRequest } from "../middleware/requireAuth.js";
 import { withTicketNumberRetry } from "../utils/ticketNumber.js";
 
 export const ticketsRouter = Router();
@@ -18,7 +18,7 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/webp",
   "application/pdf",
 ]);
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_ACTIVE_ATTACHMENTS = 5;
 
 const storage = multer.diskStorage({
@@ -46,6 +46,8 @@ function ticketToJson(t: any) {
     id: t.id,
     ticketNumber: t.ticketNumber,
     requesterId: t.requesterId,
+    ticketOwnerId: t.ticketOwnerId,
+    ticketOwnerName: t.ticketOwner?.name ?? null,
     categoryId: t.categoryId,
     relatedSystemId: t.relatedSystemId,
     summary: t.summary,
@@ -53,6 +55,7 @@ function ticketToJson(t: any) {
     requestedPriority: t.requestedPriority,
     itPriority: t.itPriority,
     currentStatus: t.currentStatus,
+    requesterMarkedResolved: t.requesterMarkedResolved,
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
     attachments: (t.attachments ?? []).map((a: any) => ({
@@ -68,10 +71,11 @@ function ticketToJson(t: any) {
   };
 }
 
-// POST /api/tickets — BR-07..BR-13, AC-01, AC-04..AC-09
+// POST /api/tickets — BR-06 (Lab3): requesterId always comes from the session.
 ticketsRouter.post(
   "/",
-  requireDevRequester,
+  requireAuth,
+  requireFullAccess,
   (req, res, next) => {
     upload.array("attachments", MAX_ACTIVE_ATTACHMENTS)(req, res, (err: any) => {
       if (err) {
@@ -89,7 +93,7 @@ ticketsRouter.post(
       next();
     });
   },
-  async (req: RequesterRequest, res: Response) => {
+  async (req: AuthedRequest, res: Response) => {
     const prisma = getPrisma();
     const { categoryId, relatedSystemId, summary, description, requestedPriority } = req.body;
     const files = (req.files as Express.Multer.File[]) ?? [];
@@ -135,7 +139,7 @@ ticketsRouter.post(
             ticketNumber,
             ticketYear,
             yearSequence,
-            requesterId: req.requesterId!,
+            requesterId: req.user!.id, // BR-03/BR-06 (Lab3): session identity only
             categoryId: categoryIdNum,
             relatedSystemId: relatedSystemIdNum,
             summary: trimmedSummary,
@@ -145,7 +149,6 @@ ticketsRouter.post(
         })
       );
 
-      // BR-13: ticket is saved even if some attachments fail to persist metadata.
       const failedAttachments: string[] = [];
       const savedAttachments = [];
       for (const file of files) {
@@ -177,8 +180,8 @@ ticketsRouter.post(
   }
 );
 
-// GET /api/tickets — FR-04..FR-06, AC-10..AC-14
-ticketsRouter.get("/", requireDevRequester, async (req: RequesterRequest, res: Response) => {
+// GET /api/tickets — Requester's own tickets, scoped by session identity.
+ticketsRouter.get("/", requireAuth, requireFullAccess, async (req: AuthedRequest, res: Response) => {
   const prisma = getPrisma();
   const { search, categoryId, requestedPriority, status } = req.query;
 
@@ -191,7 +194,7 @@ ticketsRouter.get("/", requireDevRequester, async (req: RequesterRequest, res: R
   let pageSize = Number(req.query.pageSize);
   if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 50) pageSize = 10;
 
-  const where: any = { requesterId: req.requesterId };
+  const where: any = { requesterId: req.user!.id };
   if (search && typeof search === "string") {
     where.OR = [
       { ticketNumber: { contains: search, mode: "insensitive" } },
@@ -228,16 +231,16 @@ ticketsRouter.get("/", requireDevRequester, async (req: RequesterRequest, res: R
   }
 });
 
-// GET /api/tickets/:id — FR-07, AC-03 (ownership -> 404, never 403)
-ticketsRouter.get("/:id", requireDevRequester, async (req: RequesterRequest, res: Response) => {
+// GET /api/tickets/:id — owned by the current Requester only.
+ticketsRouter.get("/:id", requireAuth, requireFullAccess, async (req: AuthedRequest, res: Response) => {
   const prisma = getPrisma();
   const id = Number(req.params.id);
   if (!id) return res.status(404).json({ error: "Ticket not found" });
 
   try {
     const ticket = await prisma.ticket.findFirst({
-      where: { id, requesterId: req.requesterId },
-      include: { attachments: true },
+      where: { id, requesterId: req.user!.id },
+      include: { attachments: true, ticketOwner: true },
     });
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
     res.status(200).json(ticketToJson(ticket));
@@ -247,4 +250,26 @@ ticketsRouter.get("/:id", requireDevRequester, async (req: RequesterRequest, res
   }
 });
 
-export { UPLOAD_DIR, upload, MAX_ACTIVE_ATTACHMENTS };
+// PATCH /api/tickets/:id/mark-resolved — Requester, own ticket only (BR-05).
+ticketsRouter.patch(
+  "/:id/mark-resolved",
+  requireAuth,
+  requireFullAccess,
+  async (req: AuthedRequest, res: Response) => {
+    if (req.user!.role !== "REQUESTER") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const prisma = getPrisma();
+    const id = Number(req.params.id);
+    const ticket = await prisma.ticket.findFirst({ where: { id, requesterId: req.user!.id } });
+    if (!ticket) return res.status(404).json({ error: "Ticket not found" });
+
+    const updated = await prisma.ticket.update({
+      where: { id },
+      data: { requesterMarkedResolved: true },
+    });
+    res.status(200).json({ requesterMarkedResolved: updated.requesterMarkedResolved });
+  }
+);
+
+export { UPLOAD_DIR, upload, MAX_ACTIVE_ATTACHMENTS, ticketToJson };

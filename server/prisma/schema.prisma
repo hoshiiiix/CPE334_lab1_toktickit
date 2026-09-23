@@ -7,6 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  REQUESTER
+  IT_STAFF
+  ADMINISTRATOR
+}
+
+// Evolved in place from Lab 2's DevRequester (same ids — BR-18 Option A).
+model User {
+  id                 Int       @id @default(autoincrement())
+  name               String
+  email              String    @unique
+  passwordHash       String
+  role               Role      @default(REQUESTER)
+  isActive           Boolean   @default(true)
+  mustChangePassword Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  ticketsAsRequester Ticket[]        @relation("TicketRequester")
+  ticketsOwned       Ticket[]        @relation("TicketOwner")
+  publicComments     PublicComment[]
+  internalNotes      InternalNote[]
+  sessions           Session[]
+  loginAttempts      LoginAttempt[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  email     String
+  succeeded Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}
+
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
@@ -18,15 +65,6 @@ model Category {
 model RelatedSystem {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  tickets   Ticket[]
-}
-
-model DevRequester {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   tickets   Ticket[]
@@ -48,32 +86,41 @@ enum TicketStatus {
   NEW
   OPEN
   IN_PROGRESS
+  WAITING_FOR_REQUESTER
   RESOLVED
   CLOSED
+  REOPENED
+  CANCELLED
 }
 
 model Ticket {
-  id                Int               @id @default(autoincrement())
-  ticketNumber      String            @unique
-  ticketYear        Int
-  yearSequence      Int
-  requesterId       Int
-  requester         DevRequester      @relation(fields: [requesterId], references: [id])
-  categoryId        Int
-  category          Category          @relation(fields: [categoryId], references: [id])
-  relatedSystemId   Int
-  relatedSystem     RelatedSystem     @relation(fields: [relatedSystemId], references: [id])
-  summary           String
-  description       String
-  requestedPriority RequestedPriority
-  itPriority        ItPriority?
-  currentStatus     TicketStatus      @default(NEW)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  attachments       Attachment[]
+  id                       Int               @id @default(autoincrement())
+  ticketNumber             String            @unique
+  ticketYear               Int
+  yearSequence             Int
+  requesterId              Int
+  requester                User              @relation("TicketRequester", fields: [requesterId], references: [id])
+  ticketOwnerId            Int?
+  ticketOwner              User?             @relation("TicketOwner", fields: [ticketOwnerId], references: [id])
+  categoryId               Int
+  category                 Category          @relation(fields: [categoryId], references: [id])
+  relatedSystemId          Int
+  relatedSystem            RelatedSystem     @relation(fields: [relatedSystemId], references: [id])
+  summary                  String
+  description              String
+  requestedPriority        RequestedPriority
+  itPriority               ItPriority?
+  currentStatus            TicketStatus      @default(NEW)
+  requesterMarkedResolved  Boolean           @default(false)
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  attachments              Attachment[]
+  publicComments           PublicComment[]
+  internalNotes            InternalNote[]
 
   @@unique([ticketYear, yearSequence])
   @@index([requesterId])
+  @@index([ticketOwnerId])
   @@index([currentStatus])
 }
 
@@ -89,6 +136,30 @@ model Attachment {
   isRemoved        Boolean   @default(false)
   removedAt        DateTime?
   removedReason    String?
+
+  @@index([ticketId])
+}
+
+model PublicComment {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([ticketId])
+}
+
+model InternalNote {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
 
   @@index([ticketId])
 }

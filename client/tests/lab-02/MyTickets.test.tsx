@@ -2,23 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import MyTickets from "../../src/lab2/MyTickets";
-import { DevRequesterProvider } from "../../src/lab2/DevRequesterContext";
 import * as api from "../../src/lab2/api";
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  sessionStorage.setItem(
-    "toktickit.devRequesterId",
-    JSON.stringify({ id: 1, name: "Jennifer Anderson" })
-  );
 });
 
 function renderScreen() {
   return render(
     <MemoryRouter>
-      <DevRequesterProvider>
-        <MyTickets />
-      </DevRequesterProvider>
+      <MyTickets />
     </MemoryRouter>
   );
 }
@@ -53,7 +46,7 @@ describe("MyTickets (UI-06)", () => {
         },
       ],
       pagination: { page: 1, pageSize: 10, totalItems: 1, totalPages: 1 },
-    });
+    } as any);
     renderScreen();
     await waitFor(() =>
       expect(screen.getAllByText(/TKT-2026-000001/).length).toBeGreaterThan(0)
