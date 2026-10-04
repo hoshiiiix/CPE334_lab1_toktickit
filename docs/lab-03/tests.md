@@ -25,6 +25,7 @@ passing UI test alone is never treated as proof of a security control.
 | API-12 | API | BR-11 | Requester attempts to change itPriority | 403 | `server/tests/lab-03/staff-ticket-detail.api.test.ts` | Pending |
 | API-13 | API | AC-09 | Requester marks own ticket resolved | requesterMarkedResolved true, currentStatus unchanged | `server/tests/lab-03/comments-notes.api.test.ts` | Pending |
 | API-14 | API | BR-13 | Post empty/whitespace-only comment | 400 | `server/tests/lab-03/comments-notes.api.test.ts` | Pending |
+| API-14b | API | AC-09, BR-05 | Mark-resolved on a Closed/Cancelled ticket, by IT Staff, or by a non-owner | 409 / 403 / 404, status never changed | `server/tests/lab-03/comments-notes.api.test.ts` | Pending |
 | API-15 | API | AC-10 | Create user with duplicate email | 400, field-level error | `server/tests/lab-03/users-admin.api.test.ts` | Pending |
 | API-16 | API | AC-11, BR-16 | Sole active Administrator deactivates self | 400, rejected | `server/tests/lab-03/users-admin.api.test.ts` | Pending |
 | API-17 | API | — | Admin resets a user's password | mustChangePassword becomes true for target | `server/tests/lab-03/users-admin.api.test.ts` | Pending |
@@ -36,6 +37,7 @@ passing UI test alone is never treated as proof of a security control.
 | UI-03 | UI | AC-06 | Ticket Queue renders, search/filter (IT Staff and Administrator sessions) | Results and empty/no-results states correct for both roles | `client/tests/lab-03/StaffTicketQueue.test.tsx` | Pending |
 | UI-04 | UI | AC-07, AC-08 | Ticket Detail claim + status dropdown | Owner updates; illegal transitions not listed | `client/tests/lab-03/StaffTicketDetail.test.tsx` | Pending |
 | UI-05 | UI | BR-04 | Public Comments vs Internal Notes visual distinction | Correct panel styling/labels rendered | `client/tests/lab-03/StaffTicketDetail.test.tsx` | Pending |
+| UI-07 | UI | AC-09, BR-04 | Requester Ticket Detail: Public Comments, empty-comment validation, Problem Appears Resolved, no Internal Notes | Comments shown/posted; button hidden once flagged or Closed; notes never rendered | `client/tests/lab-03/RequesterTicketDetail.test.tsx` | Pending |
 | UI-06 | UI | AC-10, AC-11 | User Management create/edit validation | Field errors and disabled-deactivate states shown | `client/tests/lab-03/UserManagement.test.tsx` | Pending |
 | RESP-01 | Responsive | §10 | Login/Queue/Ticket Detail/Admin at 375/768/1200px | Correct responsive layout at each | Manual (documented) | Pending |
 | E2E-01 | E2E | AC-01..03 | Full login → forced password change → app access | Reaches app only after valid change | `e2e/lab-03/authentication.spec.ts` | Pending |
@@ -53,7 +55,7 @@ passing UI test alone is never treated as proof of a security control.
 | AC-06 | API-08b, API-09, UI-03 |
 | AC-07 | API-10, UI-04, E2E-02 |
 | AC-08 | API-11, UI-04 |
-| AC-09 | API-13, E2E-02 |
+| AC-09 | API-13, API-14b, UI-07, E2E-02 |
 | AC-10 | API-15, UI-06, E2E-03 |
 | AC-11 | API-16, UI-06, E2E-03 |
 | AC-12 | API-08 |

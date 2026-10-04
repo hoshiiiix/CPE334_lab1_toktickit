@@ -3,10 +3,13 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import RequesterTicketDetail from "../../src/lab2/RequesterTicketDetail";
 import * as api from "../../src/lab2/api";
+import * as staffApi from "../../src/lab3/staffApi";
 import { ApiError } from "../../src/lab2/api";
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  // Lab 3 added a Public Comments panel to this screen; keep these Lab 2 tests offline.
+  vi.spyOn(staffApi, "fetchComments").mockResolvedValue([]);
 });
 
 function renderScreen() {
