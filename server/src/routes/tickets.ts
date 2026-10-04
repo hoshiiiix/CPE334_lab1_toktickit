@@ -264,6 +264,11 @@ ticketsRouter.patch(
     const ticket = await prisma.ticket.findFirst({ where: { id, requesterId: req.user!.id } });
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
+    // A closed or cancelled ticket can no longer be flagged; status itself is never changed here (BR-05).
+    if (ticket.currentStatus === "CLOSED" || ticket.currentStatus === "CANCELLED") {
+      return res.status(409).json({ error: "This ticket can no longer be marked as resolved" });
+    }
+
     const updated = await prisma.ticket.update({
       where: { id },
       data: { requesterMarkedResolved: true },

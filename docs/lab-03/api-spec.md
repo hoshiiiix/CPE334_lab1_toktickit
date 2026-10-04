@@ -81,8 +81,8 @@ Body: `{ "content": string }`
 
 ## PATCH /api/tickets/:id/mark-resolved (Requester, own ticket only)
 - 200: `{ "requesterMarkedResolved": true }`
-- 404: not found / not owned
-- 403: non-Requester role
+- 403: caller is not a Requester; 404: ticket not owned by the caller (existence not leaked)
+- 409: ticket is Closed or Cancelled; `currentStatus` is never changed by this endpoint (BR-05)
 
 ## GET /api/admin/users (Administrator only)
 Query: `search` (name or email), `role` (optional filter)
