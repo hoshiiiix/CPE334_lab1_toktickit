@@ -76,3 +76,41 @@ npx playwright test e2e/lab-02
 ### Documentation
 See [`docs/lab-02/`](docs/lab-02/) for the full specification, UI spec, test plan
 and results, AI usage log, and reviewer notes.
+
+## Lab 3 — Users, Roles, IT Staff Ticketing and Admin Screens
+
+### Migrations & Seed
+```bash
+cd server
+npm run prisma:migrate     # applies the Lab 3 migration (DevRequester -> User, same ids)
+npm run prisma:seed        # idempotent: safe to run repeatedly
+```
+
+### Local development accounts (seed data)
+> **For local development only.** These credentials exist solely in a developer's
+> local database. Never reuse them anywhere else and never commit real passwords.
+
+All seeded accounts use the password `DevPass123!`.
+
+| Role | Active accounts | Inactive account |
+|---|---|---|
+| Requester | jennifer.anderson@example.com, michael.brown@example.com, sarah.johnson@example.com, david.lee@example.com | inactive.user@example.com |
+| IT Staff | emily.davis@example.com, kevin.patel@example.com, lisa.martinez@example.com | robert.wilson@example.com |
+| Administrator | john.smith@example.com | — |
+
+Accounts created by an Administrator start with `mustChangePassword = true`: the user
+must choose a new password at first login before reaching the application.
+
+### Running the Tests
+```bash
+cd server && npm test                  # API / integration tests (needs the local PostgreSQL)
+cd client && npm test                  # component tests
+
+# End-to-end (Desktop/Tablet/Mobile). Needs the server on :3000, the client on :5173
+# and a seeded database. Screenshots are written to artifacts/lab-03/screenshots/.
+npx playwright test e2e/lab-02 e2e/lab-03
+```
+
+### Documentation
+See [`docs/lab-03/`](docs/lab-03/) for the specification, UI spec, API spec, test plan,
+AI usage log and reviewer notes.

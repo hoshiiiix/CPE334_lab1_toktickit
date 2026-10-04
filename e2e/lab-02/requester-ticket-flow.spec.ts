@@ -1,12 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { ACCOUNTS, login } from "../lab-03/helpers";
 
-// E2E-01/E2E-02/E2E-03: requires the app running (client on :5173, server on :3000)
-// with the seeded dev data available.
+// Lab 2 regression (Lab 3): the Development Requester selector is gone, so these flows
+// now start from the real login with the seeded dev data.
 test("Requester creates a ticket, finds it, and manages an attachment", async ({ page }) => {
-  await page.goto("/select-requester");
-
-  await page.getByLabel(/Development Requester/i).selectOption({ label: "Jennifer Anderson" });
-  await page.getByRole("button", { name: /Continue/i }).click();
+  await login(page, ACCOUNTS.requester);
 
   await expect(page).toHaveURL(/\/tickets$/);
 
@@ -35,9 +33,8 @@ test("Requester creates a ticket, finds it, and manages an attachment", async ({
 });
 
 test("A different requester cannot open another requester's ticket by direct URL", async ({ page }) => {
-  await page.goto("/select-requester");
-  await page.getByLabel(/Development Requester/i).selectOption({ label: "Michael Brown" });
-  await page.getByRole("button", { name: /Continue/i }).click();
+  await login(page, ACCOUNTS.otherRequester);
+  await expect(page).toHaveURL(/\/tickets$/);
 
   // Assumes ticket id 1 belongs to a different seeded requester in a fresh DB.
   await page.goto("/tickets/1");

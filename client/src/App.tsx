@@ -7,15 +7,9 @@ import CreateTicket from "./lab2/CreateTicket";
 import MyTickets from "./lab2/MyTickets";
 import RequesterTicketDetail from "./lab2/RequesterTicketDetail";
 import "./lab2/zen-green.css";
-import StaffTicketQueue from "./lab3/StaffTicketQueue"; 
+import StaffTicketQueue from "./lab3/StaffTicketQueue";
 import StaffTicketDetail from "./lab3/StaffTicketDetail";
-
-// Stub placeholders — real screens land in Issue 3 (Staff Queue/Detail) and
-// Issue 5 (Admin User Management).
-
-function AdminUsers() {
-  return <p>Administrator User Management — coming in Issue 5.</p>;
-}
+import UserManagement from "./lab3/UserManagement";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const { user, loading } = useAuth();
@@ -48,7 +42,12 @@ function Routing() {
       />
       <Route
         path="/change-password"
-        element={loading ? <p role="status">Loading…</p> : !user ? <Navigate to="/login" replace /> : <ChangePassword />}
+        element={
+          loading ? <p role="status">Loading…</p>
+          : !user ? <Navigate to="/login" replace />
+          : !user.mustChangePassword ? <Navigate to="/" replace />
+          : <ChangePassword />
+        }
       />
 
       <Route path="/tickets" element={<RequireAuth><RequireRole roles={["REQUESTER"]}><MyTickets /></RequireRole></RequireAuth>} />
@@ -57,7 +56,7 @@ function Routing() {
 
       <Route path="/queue" element={<RequireAuth><RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]}><StaffTicketQueue /></RequireRole></RequireAuth>} />
       <Route path="/queue/:id" element={<RequireAuth><RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]}><StaffTicketDetail /></RequireRole></RequireAuth>} />
-      <Route path="/admin/users" element={<RequireAuth><RequireRole roles={["ADMINISTRATOR"]}><AdminUsers /></RequireRole></RequireAuth>} />
+      <Route path="/admin/users" element={<RequireAuth><RequireRole roles={["ADMINISTRATOR"]}><UserManagement /></RequireRole></RequireAuth>} />
 
       <Route
         path="/"

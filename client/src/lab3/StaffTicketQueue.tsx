@@ -56,10 +56,10 @@ export default function StaffTicketQueue() {
 
       <form className="row g-2 mb-3" onSubmit={handleSearchSubmit}>
         <div className="col-md-4">
-          <input className="form-control" placeholder="Search by ticket number or summary…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="form-control" aria-label="Search tickets" placeholder="Search by ticket number or summary…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="col-md-3">
-          <select className="form-select" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); setTimeout(load, 0); }}>
+          <select className="form-select" aria-label="Filter by status" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); setTimeout(load, 0); }}>
             <option value="">All Statuses</option>
             {["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"].map((s) => (
               <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
