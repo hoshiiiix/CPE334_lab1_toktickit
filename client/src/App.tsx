@@ -7,12 +7,12 @@ import CreateTicket from "./lab2/CreateTicket";
 import MyTickets from "./lab2/MyTickets";
 import RequesterTicketDetail from "./lab2/RequesterTicketDetail";
 import "./lab2/zen-green.css";
+import StaffTicketQueue from "./lab3/StaffTicketQueue"; 
+import StaffTicketDetail from "./lab3/StaffTicketDetail";
 
 // Stub placeholders — real screens land in Issue 3 (Staff Queue/Detail) and
 // Issue 5 (Admin User Management).
-function StaffQueue() {
-  return <p>Staff Ticket Queue — coming in Issue 3.</p>;
-}
+
 function AdminUsers() {
   return <p>Administrator User Management — coming in Issue 5.</p>;
 }
@@ -55,7 +55,8 @@ function Routing() {
       <Route path="/tickets/new" element={<RequireAuth><RequireRole roles={["REQUESTER"]}><CreateTicket /></RequireRole></RequireAuth>} />
       <Route path="/tickets/:id" element={<RequireAuth><RequireRole roles={["REQUESTER"]}><RequesterTicketDetail /></RequireRole></RequireAuth>} />
 
-      <Route path="/queue" element={<RequireAuth><RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]}><StaffQueue /></RequireRole></RequireAuth>} />
+      <Route path="/queue" element={<RequireAuth><RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]}><StaffTicketQueue /></RequireRole></RequireAuth>} />
+      <Route path="/queue/:id" element={<RequireAuth><RequireRole roles={["IT_STAFF", "ADMINISTRATOR"]}><StaffTicketDetail /></RequireRole></RequireAuth>} />
       <Route path="/admin/users" element={<RequireAuth><RequireRole roles={["ADMINISTRATOR"]}><AdminUsers /></RequireRole></RequireAuth>} />
 
       <Route
