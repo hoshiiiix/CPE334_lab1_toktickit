@@ -17,8 +17,12 @@ async function loginAs(email: string) {
 
 beforeAll(async () => {
   const prisma = getPrisma();
-  const requesters = await prisma.user.findMany({ where: { isActive: true, role: "REQUESTER" }, take: 2 });
-  const staffUser = await prisma.user.findFirst({ where: { isActive: true, role: "IT_STAFF" } });
+  const requesters = await prisma.user.findMany({
+    where: { isActive: true, role: "REQUESTER", NOT: { email: { startsWith: "e2e-" } } },
+    orderBy: { id: "asc" },
+    take: 2,
+  });
+  const staffUser = await prisma.user.findFirst({ where: { isActive: true, role: "IT_STAFF", NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
   const category = await prisma.category.findFirst({ where: { isActive: true } });
   const relatedSystem = await prisma.relatedSystem.findFirst({ where: { isActive: true } });
 
@@ -75,17 +79,17 @@ describe("Internal Notes are hidden from Requesters (API-07, AC-05)", () => {
 });
 
 describe("PATCH /api/tickets/:id/mark-resolved (API-13, AC-09, BR-05)", () => {
-  it("returns 404 for a Requester who does not own the ticket", async () => {
+  it("API-14b: returns 404 for a Requester who does not own the ticket", async () => {
     const res = await requesterB.patch(`/api/tickets/${ticketId}/mark-resolved`);
     expect(res.status).toBe(404);
   });
 
-  it("returns 403 for IT Staff (only the Requester can use this action)", async () => {
+  it("API-14b: returns 403 for IT Staff (only the Requester can use this action)", async () => {
     const res = await staff.patch(`/api/tickets/${ticketId}/mark-resolved`);
     expect(res.status).toBe(403);
   });
 
-  it("sets requesterMarkedResolved without changing currentStatus", async () => {
+  it("API-13: sets requesterMarkedResolved without changing currentStatus", async () => {
     const before = await requesterA.get(`/api/tickets/${ticketId}`);
     const res = await requesterA.patch(`/api/tickets/${ticketId}/mark-resolved`);
     expect(res.status).toBe(200);
@@ -95,7 +99,7 @@ describe("PATCH /api/tickets/:id/mark-resolved (API-13, AC-09, BR-05)", () => {
     expect(after.body.currentStatus).toBe(before.body.currentStatus);
   });
 
-  it("returns 409 when the ticket is already Closed or Cancelled", async () => {
+  it("API-14b: returns 409 when the ticket is already Closed or Cancelled", async () => {
     const prisma = getPrisma();
     await prisma.ticket.update({ where: { id: ticketId }, data: { currentStatus: "CANCELLED" } });
     const res = await requesterA.patch(`/api/tickets/${ticketId}/mark-resolved`);

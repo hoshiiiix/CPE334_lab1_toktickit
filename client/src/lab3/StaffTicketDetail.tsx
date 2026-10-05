@@ -4,7 +4,7 @@ import {
   fetchStaffTicket, setTicketOwner, setItPriority, setTicketStatus,
   fetchComments, postComment, fetchNotes, postNote, fetchAssignees, CommentOrNote, Assignee,
 } from "./staffApi";
-import { Ticket } from "../lab2/api";
+import { Ticket, downloadAttachmentUrl } from "../lab2/api";
 
 const TRANSITIONS: Record<string, string[]> = {
   NEW: ["OPEN", "CANCELLED"],
@@ -31,6 +31,8 @@ export default function StaffTicketDetail() {
   const [assignees, setAssignees] = useState<Assignee[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   function load() {
     setState("loading");
@@ -114,6 +116,7 @@ export default function StaffTicketDetail() {
             value={ticket.itPriority ?? ""}
             onChange={(e) => runUpdate(() => setItPriority(ticket.id, e.target.value))}
           >
+            <option value="" disabled>Not set</option>
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>
             <option value="HIGH">High</option>
@@ -157,6 +160,25 @@ export default function StaffTicketDetail() {
         <div className="alert alert-success py-2">Requester has indicated this appears resolved.</div>
       )}
 
+      <div className="card p-3 mb-3">
+        <h2 className="h6">Attachments</h2>
+        <ul className="list-group">
+          {ticket.attachments.map((a) => (
+            <li key={a.id} className="list-group-item d-flex justify-content-between align-items-center">
+              <span className={a.isRemoved ? "text-muted text-decoration-line-through" : ""}>
+                {a.originalFilename}
+                {a.isRemoved && <span className="badge tk-badge-removed ms-2">Removed</span>}
+              </span>
+              {!a.isRemoved && (
+                <a className="btn btn-sm btn-outline-secondary" href={downloadAttachmentUrl(a.id)} aria-label={`Download ${a.originalFilename}`}>Download</a>
+              )}
+              {a.isRemoved && a.removedReason && <span className="small text-muted">Reason: {a.removedReason}</span>}
+            </li>
+          ))}
+          {ticket.attachments.length === 0 && <li className="list-group-item text-muted">No attachments on this ticket.</li>}
+        </ul>
+      </div>
+
       <div className="card p-3 mb-3" style={{ borderColor: "var(--color-secondary)" }}>
         <h2 className="h6">Public Comments</h2>
         <ul className="list-unstyled">
@@ -172,15 +194,21 @@ export default function StaffTicketDetail() {
           <button
             className="btn btn-success"
             onClick={async () => {
-              if (!newComment.trim()) return;
-              const c = await postComment(ticket.id, newComment.trim());
-              setComments([...comments, c]);
-              setNewComment("");
+              setCommentError(null);
+              if (!newComment.trim()) { setCommentError("A comment cannot be empty."); return; }
+              try {
+                const c = await postComment(ticket.id, newComment.trim());
+                setComments([...comments, c]);
+                setNewComment("");
+              } catch (err: any) {
+                setCommentError(err?.message || "Unable to post this comment right now.");
+              }
             }}
           >
             Post
           </button>
         </div>
+        {commentError && <div className="text-danger small mt-1" role="alert">{commentError}</div>}
       </div>
 
       <div className="card p-3" style={{ borderColor: "#B8860B" }}>
@@ -198,15 +226,21 @@ export default function StaffTicketDetail() {
           <button
             className="btn btn-outline-secondary"
             onClick={async () => {
-              if (!newNote.trim()) return;
-              const n = await postNote(ticket.id, newNote.trim());
-              setNotes([...notes, n]);
-              setNewNote("");
+              setNoteError(null);
+              if (!newNote.trim()) { setNoteError("A note cannot be empty."); return; }
+              try {
+                const n = await postNote(ticket.id, newNote.trim());
+                setNotes([...notes, n]);
+                setNewNote("");
+              } catch (err: any) {
+                setNoteError(err?.message || "Unable to post this note right now.");
+              }
             }}
           >
             Post
           </button>
         </div>
+        {noteError && <div className="text-danger small mt-1" role="alert">{noteError}</div>}
       </div>
     </div>
   );

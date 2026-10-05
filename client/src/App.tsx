@@ -22,11 +22,8 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 function RequireRole({ roles, children }: { roles: string[]; children: JSX.Element }) {
   const { user } = useAuth();
   if (user && !roles.includes(user.role)) {
-    return (
-      <AppShell>
-        <p>You don't have permission to view this.</p>
-      </AppShell>
-    );
+    // RequireAuth already wraps every protected route in AppShell, so render the message only.
+    return <p role="alert">You don't have permission to view this.</p>;
   }
   return children;
 }

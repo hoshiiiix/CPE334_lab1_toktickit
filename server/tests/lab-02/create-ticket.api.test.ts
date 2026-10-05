@@ -16,7 +16,7 @@ async function loginAs(email: string) {
 
 beforeAll(async () => {
   const prisma = getPrisma();
-  const active = await prisma.user.findFirst({ where: { isActive: true, role: "REQUESTER" } });
+  const active = await prisma.user.findFirst({ where: { isActive: true, role: "REQUESTER", NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
   const category = await prisma.category.findFirst({ where: { isActive: true } });
   const relatedSystem = await prisma.relatedSystem.findFirst({ where: { isActive: true } });
   activeRequesterEmail = active!.email;

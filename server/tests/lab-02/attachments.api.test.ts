@@ -29,7 +29,7 @@ async function createBaseTicket() {
 
 beforeAll(async () => {
   const prisma = getPrisma();
-  const requester = await prisma.user.findFirst({ where: { isActive: true, role: "REQUESTER" } });
+  const requester = await prisma.user.findFirst({ where: { isActive: true, role: "REQUESTER", NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
   agentA = await loginAs(requester!.email);
   ticketId = await createBaseTicket();
 });

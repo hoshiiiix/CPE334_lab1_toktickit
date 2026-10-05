@@ -85,6 +85,7 @@ cd server
 npm run prisma:migrate     # applies the Lab 3 migration (DevRequester -> User, same ids)
 npm run prisma:seed        # idempotent: safe to run repeatedly
 ```
+The seed also creates 24 realistic demo tickets (all statuses, priorities, owners, with example Public Comments and Internal Notes). For a clean demo state: `npx prisma migrate reset --force` (drops the local database, re-applies migrations and re-seeds).
 
 ### Local development accounts (seed data)
 > **For local development only.** These credentials exist solely in a developer's

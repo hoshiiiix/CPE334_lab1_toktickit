@@ -14,40 +14,58 @@ function StatusBadge({ value }: { value: string }) {
   return <span className="badge tk-badge-new">{value.replace(/_/g, " ")}</span>;
 }
 
+const SORT_OPTIONS: { value: string; label: string }[] = [
+  { value: "createdAt:desc", label: "Newest first" },
+  { value: "createdAt:asc", label: "Oldest first" },
+  { value: "updatedAt:desc", label: "Recently updated" },
+  { value: "ticketNumber:asc", label: "Ticket No. (low to high)" },
+  { value: "ticketNumber:desc", label: "Ticket No. (high to low)" },
+];
+
 export default function StaffTicketQueue() {
   const [state, setState] = useState<LoadState>("loading");
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [everHadTickets, setEverHadTickets] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [sortKey, setSortKey] = useState("createdAt:desc");
   const [page, setPage] = useState(1);
+  const [reloadToken, setReloadToken] = useState(0);
 
-  function load() {
+  // One effect owns loading: any change of search, status, sort or page refetches with the current values.
+  useEffect(() => {
+    let cancelled = false;
     setState("loading");
-    const params: StaffTicketListParams = { search: search || undefined, status: status || undefined, page };
+    const [sort, order] = sortKey.split(":");
+    const params: StaffTicketListParams = {
+      search: appliedSearch || undefined,
+      status: status || undefined,
+      sort,
+      order: order as "asc" | "desc",
+      page,
+    };
     fetchStaffTickets(params)
       .then((res) => {
+        if (cancelled) return;
         setTickets(res.data);
         setPagination(res.pagination);
-        const hasFilters = Boolean(search || status);
-        if (res.data.length > 0) { setEverHadTickets(true); setState("success"); }
-        else if (!hasFilters && !everHadTickets) setState("empty");
-        else setState("no-results");
+        const hasFilters = Boolean(appliedSearch || status);
+        if (res.data.length > 0) setState("success");
+        else setState(hasFilters ? "no-results" : "empty");
       })
-      .catch((err) => setState(err?.status === 403 ? "forbidden" : "error"));
-  }
-
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+      .catch((err) => {
+        if (!cancelled) setState(err?.status === 403 ? "forbidden" : "error");
+      });
+    return () => { cancelled = true; };
+  }, [appliedSearch, status, sortKey, page, reloadToken]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPage(1);
-    load();
+    setAppliedSearch(search.trim());
+    setReloadToken((n) => n + 1);
   }
 
   return (
@@ -58,15 +76,22 @@ export default function StaffTicketQueue() {
         <div className="col-md-4">
           <input className="form-control" aria-label="Search tickets" placeholder="Search by ticket number or summary…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <div className="col-md-3">
-          <select className="form-select" aria-label="Filter by status" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); setTimeout(load, 0); }}>
+        <div className="col-md-3 col-6">
+          <select className="form-select" aria-label="Filter by status" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
             <option value="">All Statuses</option>
             {["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"].map((s) => (
               <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
             ))}
           </select>
         </div>
-        <div className="col-md-3">
+        <div className="col-md-3 col-6">
+          <select className="form-select" aria-label="Sort tickets" value={sortKey} onChange={(e) => { setSortKey(e.target.value); setPage(1); }}>
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="col-md-2">
           <button type="submit" className="btn btn-outline-success w-100">Search</button>
         </div>
       </form>
@@ -79,7 +104,7 @@ export default function StaffTicketQueue() {
 
       {state === "success" && (
         <>
-          <div className="table-responsive d-none d-md-block">
+          <div className="table-responsive d-none d-lg-block">
             <table className="table bg-white">
               <thead>
                 <tr><th>Ticket No.</th><th>Created</th><th>Summary</th><th>Req. Priority</th><th>IT Priority</th><th>Status</th><th>Owner</th></tr>
@@ -87,20 +112,20 @@ export default function StaffTicketQueue() {
               <tbody>
                 {tickets.map((t) => (
                   <tr key={t.id}>
-                    <td><Link to={`/queue/${t.id}`}>{t.ticketNumber}</Link></td>
-                    <td>{new Date(t.createdAt).toLocaleString()}</td>
+                    <td className="text-nowrap"><Link to={`/queue/${t.id}`}>{t.ticketNumber}</Link></td>
+                    <td className="text-nowrap small">{new Date(t.createdAt).toLocaleDateString()}</td>
                     <td>{t.summary}</td>
                     <td><PriorityBadge value={t.requestedPriority} /></td>
                     <td><PriorityBadge value={t.itPriority} /></td>
                     <td><StatusBadge value={t.currentStatus} /></td>
-                    <td>{t.ticketOwnerName ?? <span className="text-muted">Unassigned</span>}</td>
+                    <td className="text-nowrap">{t.ticketOwnerName ?? <span className="text-muted">Unassigned</span>}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="d-md-none">
+          <div className="d-lg-none">
             {tickets.map((t) => (
               <Link to={`/queue/${t.id}`} key={t.id} className="card p-2 mb-2 text-decoration-none text-dark">
                 <strong>{t.ticketNumber}</strong>

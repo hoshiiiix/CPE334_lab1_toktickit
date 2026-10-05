@@ -9,8 +9,8 @@ let inactiveRequesterEmail: string;
 
 beforeAll(async () => {
   const prisma = getPrisma();
-  const active = await prisma.user.findFirst({ where: { isActive: true, role: "REQUESTER" } });
-  const inactive = await prisma.user.findFirst({ where: { isActive: false } });
+  const active = await prisma.user.findFirst({ where: { isActive: true, role: "REQUESTER", NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
+  const inactive = await prisma.user.findFirst({ where: { isActive: false, NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
   activeRequesterEmail = active!.email;
   inactiveRequesterEmail = inactive!.email;
 });
@@ -73,5 +73,23 @@ describe("Rate limiting (API-03, BR-07)", () => {
     }
     const res = await request(app).post("/api/auth/login").send({ email, password: "wrong" });
     expect(res.status).toBe(429);
+  });
+});
+
+describe("Session lifetime (API-19, AC-15, BR-08)", () => {
+  it("API-19: a session older than 7 days is rejected with 401 and the user must log in again", async () => {
+    const agent = request.agent(app);
+    const login = await agent.post("/api/auth/login").send({ email: activeRequesterEmail, password: KNOWN_PASSWORD });
+    expect(login.status).toBe(200);
+    const sessionId = /toktickit_session=([^;]+)/.exec(String(login.headers["set-cookie"]?.[0]))![1];
+
+    expect((await agent.get("/api/auth/me")).status).toBe(200);
+
+    // Age the session: expiry moves to 8 days before now, as if it had been issued 15 days ago.
+    await getPrisma().session.update({ where: { id: sessionId }, data: { expiresAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) } });
+
+    expect((await agent.get("/api/auth/me")).status).toBe(401);
+    const relogin = await agent.post("/api/auth/login").send({ email: activeRequesterEmail, password: KNOWN_PASSWORD });
+    expect(relogin.status).toBe(200);
   });
 });

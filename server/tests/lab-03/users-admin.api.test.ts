@@ -41,9 +41,9 @@ async function createUser(overrides: Record<string, unknown> = {}) {
 
 beforeAll(async () => {
   const prisma = getPrisma();
-  adminUser = await prisma.user.findFirst({ where: { role: "ADMINISTRATOR", isActive: true } });
-  const staffUser = await prisma.user.findFirst({ where: { role: "IT_STAFF", isActive: true } });
-  const requesterUser = await prisma.user.findFirst({ where: { role: "REQUESTER", isActive: true } });
+  adminUser = await prisma.user.findFirst({ where: { role: "ADMINISTRATOR", isActive: true, NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
+  const staffUser = await prisma.user.findFirst({ where: { role: "IT_STAFF", isActive: true, NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
+  const requesterUser = await prisma.user.findFirst({ where: { role: "REQUESTER", isActive: true, NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
 
   admin = (await loginAs(adminUser.email)).agent;
   staff = (await loginAs(staffUser!.email)).agent;

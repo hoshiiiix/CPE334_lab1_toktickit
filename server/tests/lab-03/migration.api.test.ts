@@ -4,7 +4,7 @@ import { getPrisma } from "../../src/prisma.js";
 describe("DevRequester → User migration (API-18, AC-14)", () => {
   it("preserves ticket ownership under the same requester ids after migration", async () => {
     const prisma = getPrisma();
-    const requester = await prisma.user.findFirst({ where: { role: "REQUESTER" } });
+    const requester = await prisma.user.findFirst({ where: { role: "REQUESTER", NOT: { email: { startsWith: "e2e-" } } }, orderBy: { id: "asc" } });
     expect(requester).not.toBeNull();
 
     const ticket = await prisma.ticket.findFirst({ where: { requesterId: requester!.id } });

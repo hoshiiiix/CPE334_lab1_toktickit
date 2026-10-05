@@ -7,6 +7,10 @@ import { upload, UPLOAD_DIR, MAX_ACTIVE_ATTACHMENTS } from "./tickets.js";
 
 export const attachmentsRouter = Router();
 
+// IT Staff and Administrators may VIEW and DOWNLOAD attachments on any ticket (Lab 3 §8.4);
+// upload and removal stay reserved for the owning Requester.
+const isStaffRole = (req: AuthedRequest) => req.user!.role === "IT_STAFF" || req.user!.role === "ADMINISTRATOR";
+
 attachmentsRouter.post(
   "/tickets/:ticketId/attachments",
   requireAuth,
@@ -85,7 +89,7 @@ attachmentsRouter.get(
     const ticketId = Number(req.params.ticketId);
 
     const ticket = await prisma.ticket.findFirst({
-      where: { id: ticketId, requesterId: req.user!.id },
+      where: isStaffRole(req) ? { id: ticketId } : { id: ticketId, requesterId: req.user!.id },
     });
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
@@ -117,7 +121,9 @@ attachmentsRouter.get(
     const id = Number(req.params.id);
 
     const attachment = await prisma.attachment.findFirst({
-      where: { id, isRemoved: false, ticket: { requesterId: req.user!.id } },
+      where: isStaffRole(req)
+        ? { id, isRemoved: false }
+        : { id, isRemoved: false, ticket: { requesterId: req.user!.id } },
     });
     if (!attachment) return res.status(404).json({ error: "Attachment not found" });
 
