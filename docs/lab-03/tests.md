@@ -29,6 +29,7 @@ passing UI test alone is never treated as proof of a security control.
 | API-15 | API | AC-10 | Create user with duplicate email | 400, field-level error | `server/tests/lab-03/users-admin.api.test.ts` | Pending |
 | API-16 | API | AC-11, BR-16 | Sole active Administrator deactivates self | 400, rejected | `server/tests/lab-03/users-admin.api.test.ts` | Pending |
 | API-17 | API | — | Admin resets a user's password | mustChangePassword becomes true for target | `server/tests/lab-03/users-admin.api.test.ts` | Pending |
+| API-20 | API | AC-06, AC-10 | Admin lists users, searches by name/email, filters by role, rejects an invalid role filter | 200 with list fields and no passwordHash; empty list when nothing matches; 400 on invalid role | `server/tests/lab-03/users-admin.api.test.ts` | Pending |
 | API-18 | API | AC-14 | Migrated DevRequester tickets remain correctly owned, same ids | Ticket.requesterId unchanged and valid | `server/tests/lab-03/migration.api.test.ts` | Pending |
 | API-19 | API | AC-15 | Session older than 7 days | 401, must log in again | `server/tests/lab-03/auth.api.test.ts` | Pending |
 | REGRESSION-01 | API | DoD | Full Lab 2 API test suite re-run post-migration | All Lab 2 tests still pass | `server/tests/lab-02/*.test.ts` | Pending |
@@ -42,6 +43,7 @@ passing UI test alone is never treated as proof of a security control.
 | RESP-01 | Responsive | §10 | Login/Queue/Ticket Detail/Admin at 375/768/1200px | Correct responsive layout at each | Manual (documented) | Pending |
 | E2E-01 | E2E | AC-01..03 | Full login → forced password change → app access | Reaches app only after valid change | `e2e/lab-03/authentication.spec.ts` | Pending |
 | E2E-02 | E2E | AC-07, AC-09 | IT Staff claims ticket, sets status, posts comment; Requester marks resolved | Full cross-role workflow succeeds | `e2e/lab-03/staff-ticket-flow.spec.ts` | Pending |
+| E2E-04 | E2E | AC-13 | Logout, then direct URL; role-specific navigation | Protected URL returns to login; each role sees only its own links | `e2e/lab-03/authentication.spec.ts` | Pending |
 | E2E-03 | E2E | AC-10, AC-11 | Admin creates a user, edits it, attempts self-deactivation | User created/edited; self-deactivation blocked | `e2e/lab-03/user-administration.spec.ts` | Pending |
 
 ## 3. Acceptance-Criterion Traceability
@@ -59,6 +61,7 @@ passing UI test alone is never treated as proof of a security control.
 | AC-10 | API-15, UI-06, E2E-03 |
 | AC-11 | API-16, UI-06, E2E-03 |
 | AC-12 | API-08 |
+| AC-13 | E2E-04 |
 | AC-14 | API-18 |
 | AC-15 | API-19 |
 

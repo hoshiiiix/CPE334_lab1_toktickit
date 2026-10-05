@@ -9,6 +9,7 @@ import { ticketsRouter } from "./routes/tickets.js";
 import { attachmentsRouter } from "./routes/attachments.js";
 import { staffTicketsRouter } from "./routes/staffTickets.js";
 import { commentsNotesRouter } from "./routes/commentsNotes.js";
+import { adminUsersRouter } from "./routes/adminUsers.js";
 
 export const app = express();
 app.use(cors({ origin: true, credentials: true }));
@@ -26,5 +27,6 @@ app.use("/api/tickets", ticketsRouter);
 app.use("/api", attachmentsRouter);
 app.use("/api/staff/tickets", staffTicketsRouter);
 app.use("/api", commentsNotesRouter);
+app.use("/api/admin/users", adminUsersRouter);
 
 export default app;
