@@ -108,12 +108,12 @@ new control (role dropdown, status dropdown, comment/note textareas, password
 visibility toggles).
 
 ## 11. Visual Inspection Checklist (additions to Lab 2's)
-- [ ] Public Comments and Internal Notes are never visually confusable
-- [ ] Role badge always visible in the app shell header
-- [ ] Password checklist updates live and matches actual validation
-- [ ] Status dropdown never lists a transition forbidden by BR-12
-- [ ] Admin screen fully unreachable (nav + direct URL) for IT Staff/Requester;
+- [x] Public Comments and Internal Notes are never visually confusable
+- [x] Role badge always visible in the app shell header
+- [x] Password checklist updates live and matches actual validation
+- [x] Status dropdown never lists a transition forbidden by BR-12
+- [x] Admin screen fully unreachable (nav + direct URL) for IT Staff/Requester;
       My Queue reachable by both IT Staff and Administrator
-- [ ] Screenshots captured desktop/tablet/mobile for: Login, Change Password,
+- [x] Screenshots captured desktop/tablet/mobile for: Login, Change Password,
       IT Staff Queue, IT Staff Ticket Detail, User Management — saved under
       `artifacts/lab-03/screenshots/<screen>/`
