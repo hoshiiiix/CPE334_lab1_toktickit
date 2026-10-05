@@ -2,15 +2,19 @@ import { Router, Response } from "express";
 import path from "path";
 import fs from "fs";
 import { getPrisma } from "../prisma.js";
-import { requireDevRequester, RequesterRequest } from "../middleware/requireDevRequester.js";
+import { requireAuth, requireFullAccess, AuthedRequest } from "../middleware/requireAuth.js";
 import { upload, UPLOAD_DIR, MAX_ACTIVE_ATTACHMENTS } from "./tickets.js";
 
 export const attachmentsRouter = Router();
 
-// POST /api/tickets/:ticketId/attachments — FR-08, AC-06..AC-08
+// IT Staff and Administrators may VIEW and DOWNLOAD attachments on any ticket (Lab 3 §8.4);
+// upload and removal stay reserved for the owning Requester.
+const isStaffRole = (req: AuthedRequest) => req.user!.role === "IT_STAFF" || req.user!.role === "ADMINISTRATOR";
+
 attachmentsRouter.post(
   "/tickets/:ticketId/attachments",
-  requireDevRequester,
+  requireAuth,
+  requireFullAccess,
   (req, res, next) => {
     upload.single("file")(req, res, (err: any) => {
       if (err) {
@@ -25,17 +29,15 @@ attachmentsRouter.post(
       next();
     });
   },
-  async (req: RequesterRequest, res: Response) => {
+  async (req: AuthedRequest, res: Response) => {
     const prisma = getPrisma();
     const ticketId = Number(req.params.ticketId);
     const file = req.file;
 
-    if (!file) {
-      return res.status(400).json({ error: "No file provided" });
-    }
+    if (!file) return res.status(400).json({ error: "No file provided" });
 
     const ticket = await prisma.ticket.findFirst({
-      where: { id: ticketId, requesterId: req.requesterId },
+      where: { id: ticketId, requesterId: req.user!.id },
     });
     if (!ticket) {
       fs.unlink(file.path, () => {});
@@ -78,16 +80,16 @@ attachmentsRouter.post(
   }
 );
 
-// GET /api/tickets/:ticketId/attachments — list metadata
 attachmentsRouter.get(
   "/tickets/:ticketId/attachments",
-  requireDevRequester,
-  async (req: RequesterRequest, res: Response) => {
+  requireAuth,
+  requireFullAccess,
+  async (req: AuthedRequest, res: Response) => {
     const prisma = getPrisma();
     const ticketId = Number(req.params.ticketId);
 
     const ticket = await prisma.ticket.findFirst({
-      where: { id: ticketId, requesterId: req.requesterId },
+      where: isStaffRole(req) ? { id: ticketId } : { id: ticketId, requesterId: req.user!.id },
     });
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
@@ -110,16 +112,18 @@ attachmentsRouter.get(
   }
 );
 
-// GET /api/attachments/:id/download — AC-16, AC-17 (never serve removed files)
 attachmentsRouter.get(
   "/attachments/:id/download",
-  requireDevRequester,
-  async (req: RequesterRequest, res: Response) => {
+  requireAuth,
+  requireFullAccess,
+  async (req: AuthedRequest, res: Response) => {
     const prisma = getPrisma();
     const id = Number(req.params.id);
 
     const attachment = await prisma.attachment.findFirst({
-      where: { id, isRemoved: false, ticket: { requesterId: req.requesterId } },
+      where: isStaffRole(req)
+        ? { id, isRemoved: false }
+        : { id, isRemoved: false, ticket: { requesterId: req.user!.id } },
     });
     if (!attachment) return res.status(404).json({ error: "Attachment not found" });
 
@@ -131,11 +135,11 @@ attachmentsRouter.get(
   }
 );
 
-// DELETE /api/attachments/:id — AC-18, soft removal with reason
 attachmentsRouter.delete(
   "/attachments/:id",
-  requireDevRequester,
-  async (req: RequesterRequest, res: Response) => {
+  requireAuth,
+  requireFullAccess,
+  async (req: AuthedRequest, res: Response) => {
     const prisma = getPrisma();
     const id = Number(req.params.id);
     const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
@@ -145,11 +149,9 @@ attachmentsRouter.delete(
     }
 
     const attachment = await prisma.attachment.findFirst({
-      where: { id, isRemoved: false, ticket: { requesterId: req.requesterId } },
+      where: { id, isRemoved: false, ticket: { requesterId: req.user!.id } },
     });
-    if (!attachment) {
-      return res.status(404).json({ error: "Attachment not found" });
-    }
+    if (!attachment) return res.status(404).json({ error: "Attachment not found" });
 
     const updated = await prisma.attachment.update({
       where: { id },
